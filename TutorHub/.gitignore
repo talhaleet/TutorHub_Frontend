@@ -1,0 +1,63 @@
+# Dependencies
+
+node_modules/
+.pnpm-store/
+.npm/
+
+# Build outputs
+
+dist/
+build/
+out/
+
+# Environment variables
+
+.env
+.env.*
+!.env.example
+.env.production
+.env.local
+
+# Logs
+
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS files
+
+.DS_Store
+Thumbs.db
+
+# IDE / Editor
+
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Cache
+
+.cache/
+.parcel-cache/
+.vite/
+.eslintcache
+
+# TypeScript
+
+*.tsbuildinfo
+
+# Coverage
+
+coverage/
+
+# Misc
+
+*.local
+.vercel
+.netlify
