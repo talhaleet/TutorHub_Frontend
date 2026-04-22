@@ -1,3 +1,77 @@
+/* index.css — Global styles for TutorHub */
+
+
+
+/* ── Google Fonts Import ─────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+/* ^ Inter font for professional look. "display=swap" prevents flash of unstyled text. */
+/* ── Tailwind Directives ──────────────────────────────────────────── */
 @tailwind base;
+/* ^ Injects Tailwind's base/reset styles (Preflight — normalizes browser defaults) */
 @tailwind components;
+/* ^ Injects Tailwind's component styles (none by default unless plugins add them) */
 @tailwind utilities;
+/* ^ Injects ALL Tailwind utility classes defined in tailwind.config.js */
+
+
+
+/* ── CSS Custom Properties (Design Tokens) ───────────────────────── */
+:root {
+  /* Spacing scale — consistent spacing throughout the app */
+  --space-xs:  0.25rem;   /* 4px  */
+  --space-sm:  0.5rem;    /* 8px  */
+  --space-md:  1rem;      /* 16px */
+  --space-lg:  1.5rem;    /* 24px */
+  --space-xl:  2rem;      /* 32px */
+  --space-2xl: 3rem;      /* 48px */
+
+  /* Navbar height — used by pages to add correct padding-top */
+  --navbar-height: 4rem; /* 64px */
+}/* ── Base Element Overrides ──────────────────────────────────────── */
+html {
+  /* Smooth scrolling for anchor links (e.g. #how-it-works section) */
+  scroll-behavior: smooth;
+  /* Prevent layout shift caused by scrollbar appearing/disappearing */
+  scrollbar-gutter: stable;
+}
+
+body {
+  /* Inter as primary font, system fallbacks for offline/slow connections */
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  /* Slightly off-white background — easier on eyes than pure white */
+  background-color: #F9FAFB;
+  color: #111827; /* neutral-900 — dark text for readability */
+  /* Improve font rendering on macOS and high-DPI displays */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Focus Styles (Accessibility) ───────────────────────────────── */
+/* Remove default blue outline and replace with brand-colored ring */
+*:focus-visible {
+  outline: 2px solid #0EA5E9; /* accent color */
+  outline-offset: 2px;
+}
+
+/* ── Scrollbar Styling (Webkit browsers) ─────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #F3F4F6; }
+::-webkit-scrollbar-thumb { background: #9CA3AF; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #6B7280; }
+
+/* ── Utility Classes ────────────────────────────────────────────── */
+/* .container-page: consistent max-width + horizontal padding for all pages */
+.container-page {
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;   /* 24px on mobile */
+  padding-right: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .container-page {
+    padding-left: 2rem;   /* 32px on desktop */
+    padding-right: 2rem;
+  }
+}

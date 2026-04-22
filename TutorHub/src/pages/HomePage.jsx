@@ -1,9 +1,15 @@
-import React from 'react'
+// HomePage.jsx — Placeholder, full content built on Day 7
+// Updated Day 3: now uses PublicLayout so Navbar and Footer appear.
 
-function HomePage() {
-  return (
-    <div style={{ padding: 40 }}>Home Page — Coming Soon</div>
-  )
-}
+import PublicLayout from '../components/layout/PublicLayout';
 
-export default HomePage
+const HomePage = () => (
+  <PublicLayout>
+    {/* Temporary placeholder content — replace on Day 7 */}
+    <div className="flex items-center justify-center min-h-96 text-neutral-500 text-xl">
+      Home Page — Coming Day 7
+    </div>
+  </PublicLayout>
+);
+
+export default HomePage;
