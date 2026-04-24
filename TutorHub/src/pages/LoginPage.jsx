@@ -155,7 +155,7 @@ const LoginPage = () => {
                   onClick={() => setShowPassword((prev) => !prev)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
                 >
-                  {showPassword ? "🙈" : "👁️"}
+                  {showPassword ? "\u{1F441}" : "\u{1F441}\u{FE0F}\u{200D}\u{1F5E8}\u{FE0F}"}
                 </button>
               </div>
 

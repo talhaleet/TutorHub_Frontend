@@ -7,6 +7,7 @@ import SearchPage            from './pages/SearchPage';
 import TutorProfilePage      from './pages/TutorProfilePage';
 import LoginPage             from './pages/LoginPage';
 import RegisterPage          from './pages/RegisterPage';
+import RegisterSuccessPage from "./pages/RegisterSuccessPage";
 import ForgotPasswordPage    from './pages/ForgotPasswordPage';
 
 import ResetPasswordPage     from './pages/ResetPasswordPage';
@@ -54,6 +55,7 @@ function App() {
         <Route path='/tutor/:id'         element={<TutorProfilePage />} />
         <Route path='/login'             element={<LoginPage />} />
         <Route path='/register'          element={<RegisterPage />} />
+        <Route path="/register/success" element={<RegisterSuccessPage />} />
         <Route path='/forgot-password'   element={<ForgotPasswordPage />} />
         <Route path='/reset-password'    element={<ResetPasswordPage />} />
         <Route path='/verify-email'      element={<VerifyEmailPage />} />
