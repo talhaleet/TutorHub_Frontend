@@ -1,0 +1,16 @@
+services:
+  tutorhub-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile  # Make sure this matches the exact filename
+    container_name: tutorhub-frontend
+    ports:
+      - "4000:4000"
+    restart: always 
+    networks:
+      - tutorhub-network
+
+networks:
+  tutorhub-network:
+    driver: bridge
+    

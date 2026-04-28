@@ -1,0 +1,21 @@
+# tutorhub-frontend/.dockerignore
+ 
+# Do not copy node_modules — Docker installs them fresh inside the container
+node_modules/
+ 
+# Built output — Docker will create this during the build
+dist/
+ 
+# Environment files — values are passed via docker-compose environment section
+.env
+.env.local
+.env.development
+.env.docker
+ 
+# Git files
+.git/
+.gitignore
+ 
+# Editor files
+.vscode/
+*.log
