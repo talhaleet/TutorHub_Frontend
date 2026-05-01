@@ -86,7 +86,7 @@ const SearchPage = () => {
       </div>
 
       {/* MOBILE FILTER BUTTON */}
-      <div className="md:hidden sticky top-16 z-30 bg-white border-b border-neutral-200 px-4 py-3">
+      <div className="md:hidden  sticky top-16 z-30 bg-white border-b border-neutral-200 px-4 py-3">
         <button
           onClick={() => setIsMobileFilterOpen(true)}
           className="flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-semibold rounded-xl"
