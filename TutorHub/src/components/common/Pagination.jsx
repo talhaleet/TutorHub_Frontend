@@ -1,78 +1,40 @@
-// Pagination.jsx — src/components/common/
-
-const Pagination = ({ currentPage, totalPages, onPageChange }) => {
-  if (totalPages <= 1) return null;
-
-  // Show page numbers with ellipsis for large page counts
-  const getPages = () => {
-    if (totalPages <= 7) {
-      return Array.from({ length: totalPages }, (_, i) => i + 1);
-    }
-
-    const pages = [1];
-
-    if (currentPage > 3) pages.push('...');
-
-    for (
-      let i = Math.max(2, currentPage - 1);
-      i <= Math.min(totalPages - 1, currentPage + 1);
-      i++
-    ) {
-      pages.push(i);
-    }
-
-    if (currentPage < totalPages - 2) pages.push('...');
-
-    pages.push(totalPages);
-
-    return pages;
-  };
-
-  const btnClass = (active, disabled) =>
-    `min-w-[36px] h-9 px-2 rounded-xl text-sm font-medium transition-all duration-200
-    ${
-      disabled
-        ? 'opacity-40 cursor-not-allowed'
-        : active
-        ? 'bg-primary text-white shadow-card'
-        : 'text-neutral-600 hover:bg-neutral-100 hover:text-primary'
-    }`;
-
+// src/components/common/Pagination.jsx
+export default function Pagination({ currentPage, totalPages, onPageChange }) {
+  const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
+  const visible = pages.filter(p =>
+    p === 1 || p === totalPages ||
+    Math.abs(p - currentPage) <= 2
+  );
   return (
-    <div className="flex items-center justify-center gap-1 mt-10">
+    <div className="flex items-center justify-center gap-2">
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className={btnClass(false, currentPage === 1)}
-      >
-        ← Prev
+        className="px-3 py-2 rounded-lg border border-gray-300 text-sm
+          hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">
+        Prev
       </button>
-
-      {getPages().map((page, i) =>
-        page === '...' ? (
-          <span key={`e${i}`} className="px-2 text-neutral-400">
-            …
-          </span>
-        ) : (
+      {visible.map((p, idx) => (
+        <span key={p}>
+          {idx > 0 && visible[idx-1] !== p - 1 && (
+            <span className="px-1 text-gray-400">...</span>
+          )}
           <button
-            key={page}
-            onClick={() => onPageChange(page)}
-            className={btnClass(page === currentPage, false)}
-          >
-            {page}
-          </button>
-        )
-      )}
-
+            onClick={() => onPageChange(p)}
+            className={`px-3 py-2 rounded-lg text-sm font-medium transition
+              ${p === currentPage
+                ? 'bg-blue-600 text-white'
+                : 'border border-gray-300 hover:bg-gray-50'}`}
+          >{p}</button>
+        </span>
+      ))}
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className={btnClass(false, currentPage === totalPages)}
-      >
-        Next →
-      </button>
+        className="px-3 py-2 rounded-lg border border-gray-300 text-sm
+          hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">
+        Next
+         </button>
     </div>
   );
-};
-
-export default Pagination;
+}

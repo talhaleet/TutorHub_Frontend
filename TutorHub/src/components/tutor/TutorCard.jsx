@@ -1,183 +1,123 @@
 // TutorCard.jsx — src/components/tutor/
-// Displays a single tutor in search results.
-
-import { Link } from 'react-router-dom';
-import Avatar from '../common/Avatar';
+import { Link } from "react-router-dom";
 
 const TutorCard = ({ tutor }) => {
   const {
-    userId,
-    firstName,
-    lastName,
-    headline,
-    city,
-    hourlyRateMin,
-    teachingMode,
-    averageRating,
-    totalReviews,
-    isVerified,
-    experienceYears,
-    subjects = [],
-    profileImageUrl,
+    id, name, headline, subjects, city, teachingMode,
+    hourlyRateMin, hourlyRateMax, experienceYears,
+    averageRating, totalReviews, isVerified,
+    initials, color,
   } = tutor;
-
-  const modeLabel = {
-    Online: 'Online Only',
-    InPerson: 'In-Person',
-    Both: 'Online & In-Person',
-  }[teachingMode] || teachingMode;
-
-  const modeColor = {
-    Online: 'bg-blue-50 text-blue-700',
-    InPerson: 'bg-purple-50 text-purple-700',
-    Both: 'bg-green-50 text-green-700',
-  }[teachingMode] || 'bg-neutral-100 text-neutral-600';
 
   return (
     <div className="bg-white rounded-2xl border border-neutral-200 shadow-card
-    hover:shadow-lg hover:border-primary/20 hover:-translate-y-0.5
-    transition-all duration-300 overflow-hidden group">
+                    hover:shadow-lg hover:border-primary/20 hover:-translate-y-0.5
+                    transition-all duration-300 overflow-hidden group
+                    flex flex-col">
 
-      {/* ── Header ───────────────── */}
-      <div className="p-5 flex items-start gap-4">
-        <Avatar
-          name={`${firstName} ${lastName}`}
-          imageUrl={profileImageUrl}
-          size="lg"
-        />
+      {/* ── Card Header ── */}
+      <div className="bg-neutral-50 p-5 flex items-start gap-4 border-b
+                      border-neutral-100">
 
+        {/* Avatar */}
+        <div className={`w-14 h-14 ${color} rounded-2xl flex items-center
+                         justify-center flex-shrink-0 group-hover:scale-105
+                         transition-transform duration-300`}>
+          <span className="font-bold text-white text-lg">{initials}</span>
+        </div>
+
+        {/* Name + badge + rating */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <div className="flex items-center gap-1.5">
-                <h3 className="font-bold text-neutral-900 text-base truncate">
-                  {firstName} {lastName}
-                </h3>
-
-                {isVerified && (
-                  <span
-                    title="Verified Tutor"
-                    className="flex-shrink-0 w-5 h-5 bg-primary rounded-full flex items-center justify-center"
-                  >
-                    <svg
-                      className="w-3 h-3 text-white"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={3}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                  </span>
-                )}
-              </div>
-
-              <p className="text-sm text-neutral-500 mt-0.5 truncate">
-                {headline}
-              </p>
-            </div>
-
-            {/* Rate */}
-            <div className="text-right flex-shrink-0">
-              <p className="font-bold text-primary text-sm">
-                PKR {(hourlyRateMin || 0).toLocaleString()}
-              </p>
-              <p className="text-xs text-neutral-400">per hour</p>
-            </div>
-          </div>
-
-          {/* Rating */}
-          <div className="flex items-center gap-1.5 mt-2">
-            <div className="flex">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <span
-                  key={i}
-                  className={`text-sm ${
-                    i <= Math.round(averageRating || 0)
-                      ? 'text-yellow-400'
-                      : 'text-neutral-200'
-                  }`}
-                >
-                  ★
-                </span>
-              ))}
-            </div>
-
-            <span className="text-sm font-semibold text-neutral-800">
-              {averageRating > 0 ? averageRating.toFixed(1) : 'New'}
-            </span>
-
-            {totalReviews > 0 && (
-              <span className="text-xs text-neutral-400">
-                ({totalReviews} reviews)
+          <div className="flex items-start justify-between gap-2 flex-wrap">
+            <h3 className="font-bold text-neutral-900 text-base leading-tight">
+              {name}
+            </h3>
+            {/* Verified badge */}
+            {isVerified && (
+              <span className="inline-flex items-center gap-1 text-xs font-semibold
+                               bg-primary/10 text-primary px-2 py-0.5 rounded-full
+                               flex-shrink-0">
+                ✓ Verified
               </span>
             )}
           </div>
+
+          {/* Headline */}
+          <p className="text-sm text-neutral-500 mt-0.5 line-clamp-1">
+            {headline}
+          </p>
+
+          {/* Star rating */}
+          <div className="flex items-center gap-1 mt-1.5">
+            <span className="text-yellow-400 text-sm">★</span>
+            <span className="text-sm font-bold text-neutral-800">
+              {averageRating.toFixed(1)}
+              </span>
+            <span className="text-xs text-neutral-400">
+              ({totalReviews} reviews)
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* ── Subjects ───────────────── */}
-      {subjects.length > 0 && (
-        <div className="px-5 pb-3 flex flex-wrap gap-1.5">
-          {subjects.slice(0, 4).map((s) => (
-            <span
-              key={s.id}
-              className="px-2.5 py-1 bg-primary/8 text-primary text-xs font-medium rounded-full"
+      {/* ── Card Body ── */}
+      <div className="p-5 flex-1 flex flex-col">
+
+        {/* Subject tags */}
+        <div className="flex flex-wrap gap-1.5 mb-4">
+          {subjects.slice(0, 3).map(s => (
+            <span key={s}
+              className="px-2.5 py-1 bg-primary/5 text-primary text-xs
+                         font-semibold rounded-full border border-primary/10"
             >
-              {s.name}
+              {s}
             </span>
           ))}
-
-          {subjects.length > 4 && (
-            <span className="px-2.5 py-1 bg-neutral-100 text-neutral-500 text-xs font-medium rounded-full">
-              +{subjects.length - 4} more
+          {subjects.length > 3 && (
+            <span className="px-2.5 py-1 bg-neutral-100 text-neutral-500
+                             text-xs rounded-full">
+              +{subjects.length - 3}
             </span>
           )}
         </div>
-      )}
 
-      {/* ── Meta ───────────────── */}
-      <div className="px-5 pb-4 flex flex-wrap items-center gap-x-4 gap-y-1.5">
-        <span className="text-xs text-neutral-500 flex items-center gap-1">
-          📍 {city}
-        </span>
+        {/* Meta info rows */}
+        <div className="space-y-2 mb-5 flex-1">
+          {[
+            ["📍", city],
+            ["💻", teachingMode === "InPerson" ? "In-Person Only"
+                    : teachingMode === "Both" ? "Online & In-Person"
+                    : "Online Only"],
+            ["⏱", `${experienceYears} year${experienceYears !== 1 ? "s" : ""} experience`],
+          ].map(([icon, val]) => (
+            <div key={val} className="flex items-center gap-2 text-sm text-neutral-600">
+              <span className="text-base">{icon}</span>
+              <span>{val}</span>
+            </div>
+          ))}
+        </div>
 
-        <span
-          className={`text-xs font-medium px-2 py-0.5 rounded-full ${modeColor}`}
-        >
-          {modeLabel}
-        </span>
+        {/* Price + CTA */}
+        <div className="flex items-center justify-between pt-4
+                        border-t border-neutral-100">
+          <div>
+            <span className="text-lg font-bold text-primary">
+              PKR {hourlyRateMin.toLocaleString()}
+            </span>
+            <span className="text-neutral-400 text-sm"> — </span>
+            <span className="text-sm font-semibold text-neutral-600">
+              {hourlyRateMax.toLocaleString()}/hr
+            </span>
+          </div>
+          <Link
+            to={`/tutor/${id}`}
+            className="px-4 py-2 bg-primary text-white text-sm font-semibold
+                       rounded-xl hover:bg-primary-dark active:scale-[0.97]
+                       transition-all duration-200"
+          > View Profile
+          </Link>
+        </div>
 
-        {experienceYears > 0 && (
-          <span className="text-xs text-neutral-500 flex items-center gap-1">
-            ⏱ {experienceYears} yr{experienceYears > 1 ? 's' : ''}
-          </span>
-        )}
-      </div>
-
-      {/* ── Actions ───────────────── */}
-      <div className="px-5 pb-5 flex items-center gap-2 border-t border-neutral-100 pt-4">
-        <Link
-          to={`/tutor/${userId}`}
-          className="flex-1 py-2.5 bg-primary text-white text-sm font-semibold
-          rounded-xl text-center hover:bg-primary-dark active:scale-[0.98]
-          transition-all duration-250 shadow-card"
-        >
-          View Profile
-        </Link>
-
-        <Link
-          to={`/book/${userId}`}
-          className="px-4 py-2.5 border-2 border-primary text-primary text-sm
-          font-semibold rounded-xl hover:bg-primary/5 active:scale-[0.98]
-          transition-all duration-250"
-        >
-          Book
-        </Link>
       </div>
     </div>
   );

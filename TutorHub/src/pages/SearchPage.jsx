@@ -1,237 +1,202 @@
-import { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+// src/pages/SearchPage.jsx
+import { useState, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 
-import { searchTutors } from '../services/searchService';
-
-import SearchBar from '../components/search/SearchBar';
-import FilterPanel from '../components/search/FilterPanel';
-import SortDropdown from '../components/search/SortDropdown';
-import TutorCard from '../components/tutor/TutorCard';
-import Pagination from '../components/common/Pagination';
-
-// ── Default filter state ──────────────────────────────────────
-const DEFAULT_FILTERS = {
-  keyword: '',
-  subjectIds: [],
-  gradeLevelId: null,
-  minPrice: 0,
-  maxPrice: 5000,
-  minRating: null,
-  teachingMode: '',
-  city: '',
-  page: 1,
-  pageSize: 9,
-  sortBy: 'rating',
-};
+import FilterPanel from "../components/search/FilterPanel";
+import TutorCard from "../components/tutor/TutorCard";
+import { searchTutors } from "../services/searchService";
 
 const SearchPage = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [searchParams] = useSearchParams();
 
-  // Read keyword directly from URL when needed, not from state
-  const [filters, setFilters] = useState(() => ({
-    ...DEFAULT_FILTERS,
-    keyword: searchParams.get('q') || '',
-  }));
+  // ✅ derive keyword safely (no effect needed)
+  const keywordFromURL = searchParams.get("q") || "";
 
-  const handleSearch = (keyword) => {
-    setFilters((prev) => ({ ...prev, keyword, page: 1 }));
-    // Update URL without causing re-renders that trigger effects
-    if (keyword) {
-      setSearchParams({ q: keyword });
-    } else {
-      setSearchParams({});
-    }
-  };
-
-  // ── React Query ─────────────────────────────────────
-  const { data, isLoading, isError, error } = useQuery({
-    queryKey: ['tutors', filters],
-    queryFn: () =>
-      searchTutors({
-        ...filters,
-        subjectIds: filters.subjectIds.join(','),
-      }),
-    placeholderData: (prev) => prev,
-    staleTime: 1000 * 30,
+  const [filters, setFilters] = useState({
+    keyword: keywordFromURL,
+    city: "",
+    teachingMode: "All",
+    maxPrice: "5000",
+    minRating: "",
+    sortBy: "rating",
+    page: 1,
   });
 
-  const tutors = data?.tutors || [];
-  const total = data?.total || 0;
-  const totalPages = data?.totalPages || 1;
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
-  const handleFilterChange = (newFilters) => {
-    setFilters({ ...newFilters, page: 1 });
+  // ✅ keep filters in sync with URL WITHOUT causing loop
+  const effectiveFilters = useMemo(() => {
+    if (filters.keyword !== keywordFromURL) {
+      return { ...filters, keyword: keywordFromURL, page: 1 };
+    }
+    return filters;
+  }, [filters, keywordFromURL]);
+
+  // React Query
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ["tutors", effectiveFilters],
+    queryFn: () => searchTutors(effectiveFilters),
+    keepPreviousData: true,
+  });
+
+  const tutors = data?.data ?? [];
+  const total = data?.total ?? 0;
+  const pageSize = data?.pageSize ?? 6;
+  const totalPages = Math.ceil(total / pageSize);
+
+  // Handlers
+  const handleFilterChange = (key, value) => {
+    setFilters((f) => ({ ...f, [key]: value, page: 1 }));
   };
 
-  const handleReset = () => {
-    setFilters({ ...DEFAULT_FILTERS, keyword: filters.keyword });
-    setSearchParams({});
+  const handleResetFilters = () => {
+    setFilters({
+      keyword: "",
+      city: "",
+      teachingMode: "All",
+      maxPrice: "5000",
+      minRating: "",
+      sortBy: "rating",
+      page: 1,
+    });
   };
 
-  // ── Skeleton ─────────────────────────────────────
-  const SkeletonCard = () => (
-    <div className="bg-white rounded-2xl border border-neutral-200 shadow-card animate-pulse p-5 space-y-4">
-      <div className="flex gap-4">
-        <div className="w-14 h-14 bg-neutral-200 rounded-2xl flex-shrink-0" />
-        <div className="flex-1 space-y-2">
-          <div className="h-4 bg-neutral-200 rounded w-2/3" />
-          <div className="h-3 bg-neutral-200 rounded w-1/2" />
-          <div className="h-3 bg-neutral-200 rounded w-1/3" />
-        </div>
-      </div>
-      <div className="flex gap-2">
-        <div className="h-6 w-20 bg-neutral-200 rounded-full" />
-        <div className="h-6 w-16 bg-neutral-200 rounded-full" />
-      </div>
-      <div className="h-9 bg-neutral-200 rounded-xl" />
-    </div>
-  );
+  const handlePageChange = (newPage) => {
+    setFilters((f) => ({ ...f, page: newPage }));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
     <div className="min-h-screen bg-neutral-50">
-      {/* ── Header ───────────────── */}
-      <div className="bg-white border-b border-neutral-200 shadow-navbar sticky top-16 z-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
-          <div className="flex items-center gap-3">
-            {/* Mobile Filter Button */}
-            <button
-              onClick={() => setIsPanelOpen(true)}
-              className="md:hidden flex items-center gap-2 px-3 py-2 rounded-xl border border-neutral-300 text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors flex-shrink-0"
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"
-                />
-              </svg>
-              Filters
-            </button>
-
-            <div className="flex-1">
-              <SearchBar
-                size="sm"
-                initialValue={filters.keyword}
-                onSearch={handleSearch}
-              />
-            </div>
-
-            <div className="hidden sm:block">
-              <SortDropdown
-                value={filters.sortBy}
-                onChange={(v) =>
-                  setFilters((prev) => ({ ...prev, sortBy: v, page: 1 }))
-                }
-              />
-            </div>
-          </div>
+      {/* HEADER */}
+      <div className="bg-primary py-10 px-4">
+        <div className="max-w-6xl mx-auto">
+          <h1 className="text-3xl font-bold text-white mb-2">
+            Find Your Perfect Tutor
+          </h1>
+          <p className="text-blue-200">
+            {total > 0
+              ? `${total} tutor${total !== 1 ? "s" : ""} found`
+              : isLoading
+              ? "Searching..."
+              : "No tutors found matching your criteria"}
+          </p>
         </div>
       </div>
 
-      {/* ── Main Layout ───────────────── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-        <div className="flex gap-8">
-          {/* Filters */}
-          <FilterPanel
-            filters={filters}
-            onChange={handleFilterChange}
-            onReset={handleReset}
-            isOpen={isPanelOpen}
-            onClose={() => setIsPanelOpen(false)}
-          />
+      {/* MOBILE FILTER BUTTON */}
+      <div className="md:hidden sticky top-16 z-30 bg-white border-b border-neutral-200 px-4 py-3">
+        <button
+          onClick={() => setIsMobileFilterOpen(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-semibold rounded-xl"
+        >
+          Filters & Sort
+        </button>
+      </div>
 
-          {/* Results */}
-          <main className="flex-1 min-w-0">
-            <div className="flex items-center justify-between mb-6">
-              <p className="text-sm text-neutral-600">
-                {isLoading
-                  ? 'Searching...'
-                  : `${total} tutor${total !== 1 ? 's' : ''} found`}
-              </p>
+      {/* MAIN */}
+      <div className="max-w-6xl mx-auto px-4 py-8 flex gap-8">
+        {/* FILTER PANEL */}
+        <FilterPanel
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          onReset={handleResetFilters}
+          isMobileOpen={isMobileFilterOpen}
+          onMobileClose={() => setIsMobileFilterOpen(false)}
+        />
 
-              <div className="sm:hidden">
-                <SortDropdown
-                  value={filters.sortBy}
-                  onChange={(v) =>
-                    setFilters((prev) => ({
-                      ...prev,
-                      sortBy: v,
-                      page: 1,
-                    }))
-                  }
+        {/* RESULTS */}
+        <main className="flex-1 min-w-0">
+          {/* LOADING */}
+          {isLoading && (
+            <div className="grid sm:grid-cols-2 gap-6">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="bg-white rounded-2xl border border-neutral-200 animate-pulse h-80"
                 />
-              </div>
+              ))}
             </div>
+          )}
 
-            {/* Error */}
-            {isError && (
-              <div className="bg-error-light border border-error/20 rounded-2xl p-8 text-center">
-                <p className="text-error font-semibold mb-2">
-                  Search failed
-                </p>
-                <p className="text-sm text-neutral-500">
-                  {error?.message ||
-                    'Please check your connection and try again.'}
-                </p>
-              </div>
-            )}
+          {/* ERROR */}
+          {isError && !isLoading && (
+            <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
+              <p className="text-red-700 font-semibold">
+                Failed to load tutors.
+              </p>
+              <p className="text-red-500 text-sm mt-1">
+                {error?.message || "Please try again."}
+              </p>
+            </div>
+          )}
 
-            {/* Loading */}
-            {isLoading && (
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <SkeletonCard key={i} />
-                ))}
-              </div>
-            )}
+          {/* EMPTY */}
+          {!isLoading && !isError && tutors.length === 0 && (
+            <div className="text-center py-20">
+              <div className="text-6xl mb-4">🔍</div>
+              <h3 className="text-xl font-bold text-neutral-700 mb-2">
+                No tutors found
+              </h3>
+              <p className="text-neutral-500 mb-6">
+                Try adjusting your filters.
+              </p>
+              <button
+                onClick={handleResetFilters}
+                className="px-6 py-3 bg-primary text-white font-semibold rounded-xl"
+              >
+                Clear all filters
+              </button>
+            </div>
+          )}
 
-            {/* Empty */}
-            {!isLoading && !isError && tutors.length === 0 && (
-              <div className="bg-white rounded-2xl border border-neutral-200 shadow-card p-16 text-center">
-                <div className="text-5xl mb-4">😕</div>
-                <h3 className="text-lg font-bold text-neutral-900 mb-2">
-                  No tutors found
-                </h3>
-                <p className="text-sm text-neutral-500 mb-6 max-w-sm mx-auto">
-                  Try adjusting your filters or searching for a different subject or location.
-                </p>
-                <button
-                  onClick={handleReset}
-                  className="px-6 py-2.5 bg-primary text-white text-sm font-semibold rounded-xl hover:bg-primary-dark transition-colors"
-                >
-                  Clear all filters
-                </button>
-              </div>
-            )}
+          {/* RESULTS GRID */}
+          {!isLoading && tutors.length > 0 && (
+            <div className="grid sm:grid-cols-2 gap-6">
+              {tutors.map((tutor) => (
+                <TutorCard key={tutor.id} tutor={tutor} />
+              ))}
+            </div>
+          )}
 
-            {/* Results */}
-            {!isLoading && tutors.length > 0 && (
-              <>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {tutors.map((tutor) => (
-                    <TutorCard key={tutor.userId} tutor={tutor} />
-                  ))}
-                </div>
+          {/* PAGINATION */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2 mt-10">
+              <button
+                onClick={() => handlePageChange(filters.page - 1)}
+                disabled={filters.page <= 1}
+                className="px-4 py-2 rounded-xl border border-neutral-200 text-sm font-semibold disabled:opacity-40"
+              >
+                ← Previous
+              </button>
 
-                <Pagination
-                  currentPage={filters.page}
-                  totalPages={totalPages}
-                  onPageChange={(p) =>
-                    setFilters((prev) => ({ ...prev, page: p }))
-                  }
-                />
-              </>
-            )}
-          </main>
-        </div>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (p) => (
+                  <button
+                    key={p}
+                    onClick={() => handlePageChange(p)}
+                    className={`w-10 h-10 rounded-xl text-sm font-semibold ${
+                      p === filters.page
+                        ? "bg-primary text-white"
+                        : "border border-neutral-200"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                )
+              )}
+
+              <button
+                onClick={() => handlePageChange(filters.page + 1)}
+                disabled={filters.page >= totalPages}
+                className="px-4 py-2 rounded-xl border border-neutral-200 text-sm font-semibold disabled:opacity-40"
+              >
+                Next →
+              </button>
+            </div>
+          )}
+        </main>
       </div>
     </div>
   );
