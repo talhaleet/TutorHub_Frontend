@@ -1,5 +1,4 @@
-// src/pages/SearchPage.jsx
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 
@@ -10,7 +9,7 @@ import { searchTutors } from "../services/searchService";
 const SearchPage = () => {
   const [searchParams] = useSearchParams();
 
-  // ✅ derive keyword safely (no effect needed)
+  // ✅ Get keyword from URL (initial only)
   const keywordFromURL = searchParams.get("q") || "";
 
   const [filters, setFilters] = useState({
@@ -25,18 +24,33 @@ const SearchPage = () => {
 
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
-  // ✅ keep filters in sync with URL WITHOUT causing loop
-  const effectiveFilters = useMemo(() => {
-    if (filters.keyword !== keywordFromURL) {
-      return { ...filters, keyword: keywordFromURL, page: 1 };
+  // ✅ Sync URL → filters ONLY when URL changes (no override while typing)
+  useEffect(() => {
+    if (keywordFromURL && keywordFromURL !== filters.keyword) {
+      setFilters((f) => ({
+        ...f,
+        keyword: keywordFromURL,
+        page: 1,
+      }));
     }
-    return filters;
-  }, [filters, keywordFromURL]);
+  }, [keywordFromURL]);
 
-  // React Query
+  // ✅ Debounce keyword (prevents API spam)
+  const [debouncedKeyword, setDebouncedKeyword] = useState(filters.keyword);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setDebouncedKeyword(filters.keyword);
+    }, 400);
+
+    return () => clearTimeout(t);
+  }, [filters.keyword]);
+
+  // ✅ React Query
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: ["tutors", effectiveFilters],
-    queryFn: () => searchTutors(effectiveFilters),
+    queryKey: ["tutors", { ...filters, keyword: debouncedKeyword }],
+    queryFn: () =>
+      searchTutors({ ...filters, keyword: debouncedKeyword }),
     keepPreviousData: true,
   });
 
@@ -47,7 +61,11 @@ const SearchPage = () => {
 
   // Handlers
   const handleFilterChange = (key, value) => {
-    setFilters((f) => ({ ...f, [key]: value, page: 1 }));
+    setFilters((f) => ({
+      ...f,
+      [key]: value,
+      page: 1,
+    }));
   };
 
   const handleResetFilters = () => {
@@ -86,7 +104,7 @@ const SearchPage = () => {
       </div>
 
       {/* MOBILE FILTER BUTTON */}
-      <div className="md:hidden  sticky top-16 z-30 bg-white border-b border-neutral-200 px-4 py-3">
+      <div className="md:hidden sticky top-16 z-30 bg-white border-b border-neutral-200 px-4 py-3">
         <button
           onClick={() => setIsMobileFilterOpen(true)}
           className="flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-semibold rounded-xl"

@@ -1,9 +1,20 @@
 // tutorService.js -- src/services/
 import axiosInstance from './axiosInstance';
+import { MOCK_TUTORS } from '../data/mockTutors';
 // Public: Get tutor profile by userId (no auth required)
+// export const getTutorProfile = async (userId) => {
+//  const res = await axiosInstance.get(`/api/tutor/${userId}`);
+//  return res.data;
+// };
+
 export const getTutorProfile = async (userId) => {
- const res = await axiosInstance.get(`/api/tutor/${userId}`);
- return res.data;
+  await new Promise((r) => setTimeout(r, 400));
+
+  const tutor = MOCK_TUTORS.find(t => t.userId === userId);
+
+  if (!tutor) throw new Error("Tutor not found");
+
+  return { data: tutor };
 };
 // Tutor: Update own profile
 export const updateTutorProfile = async (data) => {
