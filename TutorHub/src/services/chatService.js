@@ -46,6 +46,8 @@ export const normalizeMessage = (m, currentUserId) => {
     time: pick(m, 'time', 'Time') ?? 'Just now',
     senderId,
     own: currentUserId ? senderId === currentUserId : (pick(m, 'own', 'Own') ?? false),
+    isDeleted: pick(m, 'isDeleted', 'IsDeleted') ?? false,
+    isEdited: pick(m, 'isEdited', 'IsEdited') ?? false,
   };
 };
 
@@ -73,6 +75,18 @@ export const createChatRoom = async (targetUserId) => {
   const res = await axiosInstance.post('/api/chat/rooms', { userId: targetUserId });
   const room = res.data?.data ?? res.data;
   return normalizeRoom(room);
+};
+
+export const updateChatMessage = async (roomId, messageId, text) => {
+  const res = await axiosInstance.put(`/api/chat/rooms/${roomId}/messages/${messageId}`, {
+    text,
+  });
+  return res.data?.data ?? res.data;
+};
+
+export const deleteChatMessage = async (roomId, messageId) => {
+  const res = await axiosInstance.delete(`/api/chat/rooms/${roomId}/messages/${messageId}`);
+  return res.data?.data ?? res.data;
 };
 
 export const getChatUnreadCount = async () => {

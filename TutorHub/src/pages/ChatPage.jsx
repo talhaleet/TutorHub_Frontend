@@ -8,8 +8,9 @@ import {
   getChatMessages,
   sendChatMessage,
   createChatRoom,
+  updateChatMessage,
+  deleteChatMessage,
   normalizeMessage,
-  resolveFileUrl,
 } from '../services/chatService';
 import { getChatHubConnection, subscribeChatHub } from '../services/chatHubClient';
 import axiosInstance from '../services/axiosInstance';
@@ -29,6 +30,10 @@ function ChatPage() {
   const [hubReady, setHubReady] = useState(false);
   const [loadingRooms, setLoadingRooms] = useState(true);
   const [sending, setSending] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [editText, setEditText] = useState('');
+  const [menuMessageId, setMenuMessageId] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
 
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -93,6 +98,13 @@ function ChatPage() {
     scrollToBottom();
   }, [scrollToBottom]);
 
+  const replaceMessage = useCallback((rawMsg) => {
+    const msg = normalizeMessage(rawMsg, userIdRef.current);
+    if (!msg?.id) return;
+    if (String(msg.chatRoomId) !== String(activeChatRef.current)) return;
+    setMessages((prev) => prev.map((m) => (m.id === msg.id ? msg : m)));
+  }, []);
+
   useEffect(() => {
     const init = async () => {
       setLoadingRooms(true);
@@ -141,7 +153,7 @@ function ChatPage() {
     };
     setup();
 
-    const unsub = subscribeChatHub('ReceiveMessage', (raw) => {
+    const unsubReceive = subscribeChatHub('ReceiveMessage', (raw) => {
       const roomId = String(raw.chatRoomId ?? raw.ChatRoomId ?? raw.roomId ?? '');
       if (roomId === String(activeChatRef.current)) {
         appendMessage(raw);
@@ -149,8 +161,22 @@ function ChatPage() {
       fetchRooms();
     });
 
-    return () => unsub();
-  }, [appendMessage, fetchRooms]);
+    const unsubUpdated = subscribeChatHub('MessageUpdated', (raw) => {
+      replaceMessage(raw);
+      fetchRooms();
+    });
+
+    const unsubDeleted = subscribeChatHub('MessageDeleted', (raw) => {
+      replaceMessage(raw);
+      fetchRooms();
+    });
+
+    return () => {
+      unsubReceive();
+      unsubUpdated();
+      unsubDeleted();
+    };
+  }, [appendMessage, replaceMessage, fetchRooms]);
 
   const joinedRoomRef = useRef(null);
 
@@ -185,6 +211,55 @@ function ChatPage() {
   const handleChatSelect = (id) => {
     setActiveChat(String(id));
     setMobileView('chat');
+    setMenuMessageId(null);
+    setEditingId(null);
+  };
+
+  const handleStartEdit = (m) => {
+    setEditingId(m.id);
+    setEditText(m.text || '');
+    setMenuMessageId(null);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditText('');
+  };
+
+  const handleSaveEdit = async (messageId) => {
+    if (!activeChat || !editText.trim() || actionLoading) return;
+    setActionLoading(true);
+    try {
+      const updated = await updateChatMessage(activeChat, messageId, editText.trim());
+      replaceMessage(updated);
+      setEditingId(null);
+      setEditText('');
+      await fetchRooms(activeChat);
+      toast.success('Message updated');
+    } catch (err) {
+      console.error(err);
+      toast.error(err?.response?.data?.message || 'Could not update message');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDeleteMessage = async (messageId) => {
+    if (!activeChat || actionLoading) return;
+    if (!window.confirm('Delete this message?')) return;
+    setActionLoading(true);
+    setMenuMessageId(null);
+    try {
+      const deleted = await deleteChatMessage(activeChat, messageId);
+      replaceMessage(deleted);
+      await fetchRooms(activeChat);
+      toast.success('Message deleted');
+    } catch (err) {
+      console.error(err);
+      toast.error(err?.response?.data?.message || 'Could not delete message');
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const handleSendMessage = async (e) => {
@@ -245,8 +320,8 @@ function ChatPage() {
 
   return (
     <DashboardLayout>
-      <DashboardShell fullWidth hideSidebar className="!p-0 !pb-20 md:!pb-0 max-w-none w-full">
-        <div className="grid grid-cols-1 md:grid-cols-[minmax(260px,300px)_1fr] h-[calc(100dvh-64px)] md:h-[calc(100vh-64px)] overflow-hidden bg-slate-50 min-h-0">
+      <DashboardShell fullWidth className="!px-0 !pt-0 max-w-none w-full">
+        <div className="grid grid-cols-1 md:grid-cols-[minmax(240px,280px)_1fr] h-[calc(100dvh-60px-5.5rem)] md:h-[calc(100dvh-60px-2rem)] overflow-hidden bg-slate-50 min-h-0 rounded-xl border border-slate-200 md:mx-0">
           {/* Conversation list */}
           <div
             className={`border-r border-slate-200 bg-white flex flex-col h-full min-h-0 ${
@@ -362,7 +437,7 @@ function ChatPage() {
                     messages.map((m) => (
                       <div
                         key={m.id}
-                        className={`flex gap-2 sm:gap-3 max-w-[88%] sm:max-w-[75%] ${
+                        className={`group flex gap-2 sm:gap-3 max-w-[92%] sm:max-w-[78%] ${
                           m.own ? 'self-end flex-row-reverse' : 'self-start'
                         }`}
                       >
@@ -371,38 +446,121 @@ function ChatPage() {
                             {chat.user.initials}
                           </div>
                         )}
-                        <div>
+                        <div className="relative min-w-0 flex-1">
+                          <div className={`flex items-start gap-1 ${m.own ? 'flex-row-reverse' : ''}`}>
+                          {m.own && !m.isDeleted && editingId !== m.id && (
+                            <div className="relative shrink-0">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setMenuMessageId(menuMessageId === m.id ? null : m.id)
+                                }
+                                className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity touch-manipulation"
+                                aria-label="Message options"
+                              >
+                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M10 6a2 2 0 110-4 2 2 0 010 4zm0 4a2 2 0 110-4 2 2 0 010 4zm0 4a2 2 0 110-4 2 2 0 010 4z" />
+                                </svg>
+                              </button>
+                              {menuMessageId === m.id && (
+                                <div className="absolute right-0 top-9 z-20 w-36 rounded-xl border border-slate-200 bg-white shadow-lg py-1 text-sm">
+                                  <button
+                                    type="button"
+                                    className="w-full px-4 py-2.5 text-left hover:bg-slate-50 touch-manipulation"
+                                    onClick={() => handleStartEdit(m)}
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="w-full px-4 py-2.5 text-left text-red-600 hover:bg-red-50 touch-manipulation"
+                                    onClick={() => handleDeleteMessage(m.id)}
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          <div className="min-w-0 flex-1">
+                          {editingId === m.id ? (
+                            <div className="rounded-2xl border border-primary/30 bg-white p-3 shadow-sm space-y-2">
+                              <textarea
+                                value={editText}
+                                onChange={(e) => setEditText(e.target.value)}
+                                rows={2}
+                                className="w-full resize-none rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                              />
+                              <div className="flex gap-2 justify-end">
+                                <button
+                                  type="button"
+                                  onClick={handleCancelEdit}
+                                  className="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg"
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={actionLoading || !editText.trim()}
+                                  onClick={() => handleSaveEdit(m.id)}
+                                  className="px-3 py-1.5 text-xs font-semibold text-white bg-primary rounded-lg disabled:opacity-50"
+                                >
+                                  Save
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div
+                              className={`p-3.5 rounded-2xl text-sm leading-relaxed break-words ${
+                                m.isDeleted
+                                  ? 'bg-slate-100 text-slate-400 italic border border-slate-200'
+                                  : m.own
+                                    ? 'bg-primary text-white rounded-tr-none'
+                                    : 'bg-white text-slate-800 border border-slate-200/80 rounded-tl-none shadow-sm'
+                              }`}
+                            >
+                              {m.isDeleted ? (
+                                <span>This message was deleted</span>
+                              ) : (
+                                <>
+                                  {m.fileUrl && (
+                                    <div className="mb-2">
+                                      {m.fileType?.startsWith('image/') ? (
+                                        <img
+                                          src={m.fileUrl}
+                                          alt="attachment"
+                                          className="max-w-full rounded-lg max-h-40 sm:max-h-48 object-cover"
+                                        />
+                                      ) : (
+                                        <a
+                                          href={m.fileUrl}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className={`flex items-center gap-2 underline ${m.own ? 'text-white' : ''}`}
+                                        >
+                                          View attachment
+                                        </a>
+                                      )}
+                                    </div>
+                                  )}
+                                  {m.text && <div>{m.text}</div>}
+                                </>
+                              )}
+                            </div>
+                          )}
+                          </div>
+                          </div>
+
                           <div
-                            className={`p-3.5 rounded-2xl text-sm leading-relaxed ${
-                              m.own
-                                ? 'bg-primary text-white rounded-tr-none'
-                                : 'bg-white text-slate-800 border border-slate-200/80 rounded-tl-none shadow-sm'
+                            className={`text-[10px] text-slate-400 mt-1 flex items-center gap-1 ${
+                              m.own ? 'justify-end' : 'justify-start'
                             }`}
                           >
-                            {m.fileUrl && (
-                              <div className="mb-2">
-                                {m.fileType?.startsWith('image/') ? (
-                                  <img
-                                    src={m.fileUrl}
-                                    alt="attachment"
-                                    className="max-w-full rounded-lg max-h-48 object-cover"
-                                  />
-                                ) : (
-                                  <a
-                                    href={m.fileUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className={`flex items-center gap-2 underline ${m.own ? 'text-white' : ''}`}
-                                  >
-                                    View attachment
-                                  </a>
-                                )}
-                              </div>
+                            <span>{m.time}</span>
+                            {m.isEdited && !m.isDeleted && (
+                              <span className="italic">edited</span>
                             )}
-                            {m.text && <div>{m.text}</div>}
-                          </div>
-                          <div className={`text-[10px] text-slate-400 mt-1 ${m.own ? 'text-right' : 'text-left'}`}>
-                            {m.time}
                           </div>
                         </div>
                       </div>

@@ -5,6 +5,8 @@ let connection = null;
 let startPromise = null;
 const listeners = {
   ReceiveMessage: new Set(),
+  MessageUpdated: new Set(),
+  MessageDeleted: new Set(),
   ReceiveNotification: new Set(),
   UserTyping: new Set(),
 };
@@ -20,6 +22,12 @@ const getHubUrl = () => {
 function wireConnection(conn) {
   conn.on('ReceiveMessage', (msg) => {
     listeners.ReceiveMessage.forEach((cb) => cb(msg));
+  });
+  conn.on('MessageUpdated', (msg) => {
+    listeners.MessageUpdated.forEach((cb) => cb(msg));
+  });
+  conn.on('MessageDeleted', (msg) => {
+    listeners.MessageDeleted.forEach((cb) => cb(msg));
   });
   conn.on('ReceiveNotification', (payload) => {
     listeners.ReceiveNotification.forEach((cb) => cb(payload));
