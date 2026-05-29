@@ -5,7 +5,6 @@ import { cancelBooking } from '../../services/bookingService';
 import toast from 'react-hot-toast';
 
 export default function CancelBookingModal({ isOpen, onClose, bookingId, bookingDetails }) {
-  const [setReason] = useState('');
   const [otherReason, setOtherReason] = useState('');
   const [selectedReason, setSelectedReason] = useState('');
 
@@ -25,10 +24,9 @@ export default function CancelBookingModal({ isOpen, onClose, bookingId, booking
       category: selectedReason
     }),
     onSuccess: () => {
-      queryClient.invalidateQueries(['myBookings']);
+      queryClient.invalidateQueries({ queryKey: ['myBookings'] });
       toast.success('Booking cancelled successfully');
       onClose();
-      setReason('');
       setSelectedReason('');
       setOtherReason('');
     },

@@ -21,7 +21,7 @@ export const useBookingForm = () => {
  const validateStep = useCallback((currentStep) => {
  const errs = {};
  if (currentStep === 1) {
- if (!form.subjectId) errs.subjectId = 'Please select a subject';
+ if (!form.subjectId && !form.subjectName) errs.subjectName = 'Please select a subject';
  if (!form.selectedDate) errs.selectedDate = 'Please choose a date';
  // Date must be at least 2 hours in the future
  if (form.selectedDate) {

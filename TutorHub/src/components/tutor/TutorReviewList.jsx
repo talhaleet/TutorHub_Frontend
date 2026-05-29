@@ -18,6 +18,7 @@ const TutorReviewList = ({ tutorId, rating, totalReviews }) => {
  const { data } = useQuery({
  queryKey: ['reviews', tutorId],
  queryFn: () => getTutorReviews(tutorId),
+ retry: false,
  });
  const reviews = data?.data || [];
  const counts = { 5:0, 4:0, 3:0, 2:0, 1:0 };

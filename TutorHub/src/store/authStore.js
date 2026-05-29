@@ -1,24 +1,57 @@
-import { create } from "zustand";
-import { saveToken, clearToken, getToken } from "../utils/tokenUtils";
+import { create } from 'zustand';
+import {
+  saveToken,
+  clearToken,
+  getToken,
+  saveUser,
+  getStoredUser,
+  parseUserFromToken,
+  isTokenExpired,
+} from '../utils/tokenUtils';
+
+const hydrateFromStorage = () => {
+  const token = getToken();
+  if (!token || isTokenExpired(token)) {
+    return { user: null, token: null, isAuthenticated: false };
+  }
+  const stored = getStoredUser();
+  const user = stored || parseUserFromToken(token);
+  return { user, token, isAuthenticated: true };
+};
+
+const initial = hydrateFromStorage();
+
 const useAuthStore = create((set) => ({
-user: null,
-token: getToken() || null, // rehydrate from localStorage on pageload
-isAuthenticated: !!getToken(), // true if token exists in storage
-isLoading: false,
-// login — called by LoginPage.jsx after successful API response
-login: (userData, accessToken, refreshToken) => {
-saveToken(accessToken, refreshToken); // persist to localStorage
-set({ user: userData, token: accessToken, isAuthenticated: true });
-},
-// logout — called by axiosInstance on 401 refresh failure, or by user
-logout: () => {
-clearToken(); // remove from localStorage
-set({ user: null, token: null, isAuthenticated: false });
-},
-// updateUser — called after profile edit to keep store in sync
-updateUser: (data) => set((state) => ({
-user: { ...state.user, ...data }
-})),
-setLoading: (isLoading) => set({ isLoading }),
+  user: initial.user,
+  token: initial.token,
+  isAuthenticated: initial.isAuthenticated,
+  isLoading: false,
+
+  login: (userData, accessToken, refreshToken) => {
+    saveToken(accessToken, refreshToken);
+    saveUser(userData);
+    set({ user: userData, token: accessToken, isAuthenticated: true });
+  },
+
+  logout: () => {
+    clearToken();
+    set({ user: null, token: null, isAuthenticated: false });
+  },
+
+  updateUser: (data) =>
+    set((state) => {
+      const user = { ...state.user, ...data };
+      saveUser(user);
+      return { user };
+    }),
+
+  rehydrate: () => {
+    const next = hydrateFromStorage();
+    set(next);
+    return next;
+  },
+
+  setLoading: (isLoading) => set({ isLoading }),
 }));
+
 export default useAuthStore;

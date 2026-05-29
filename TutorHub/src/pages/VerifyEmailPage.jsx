@@ -1,4 +1,3 @@
-// VerifyEmailPage.jsx — automatic email verification on page load
 import { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { verifyEmail } from "../services/authService";
@@ -9,14 +8,10 @@ const VerifyEmailPage = () => {
   const [searchParams] = useSearchParams();
   const [status, setStatus] = useState(STATUS.LOADING);
   const token = searchParams.get("token");
-  // useSearchParams reads ?token=... from the URL without page reload
 
   useEffect(() => {
     const verify = async () => {
-      if (!token) {
-        setStatus(STATUS.ERROR);
-        return;
-      }
+      if (!token) { setStatus(STATUS.ERROR); return; }
       try {
         await verifyEmail(token);
         setStatus(STATUS.SUCCESS);
@@ -26,80 +21,68 @@ const VerifyEmailPage = () => {
     };
     verify();
   }, [token]);
-  // [] dependency — runs once on mount. token is stable from searchParams.
 
-  // ── Loading state ────────────────────────────────────────
   if (status === STATUS.LOADING) {
     return (
-      <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin w-12 h-12 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
-          <p className="text-neutral-500 text-sm">Verifying your email...</p>
+      <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-slate-50 via-indigo-50/50 to-blue-50 py-16 px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-[460px] bg-white rounded-2xl shadow-xl border border-slate-100 p-8 sm:p-10 text-center">
+          <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-6"></div>
+          <h2 className="text-xl font-bold text-slate-800 mb-2">Verifying email</h2>
+          <p className="text-slate-500 text-sm">
+            Please wait while we verify your email address.
+          </p>
         </div>
       </div>
     );
   }
 
-  // ── Error state ──────────────────────────────────────────
   if (status === STATUS.ERROR) {
     return (
-      <div className="min-h-screen bg-neutral-50 flex items-center justify-center px-4">
-        <div className="w-full max-w-md text-center">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-red-50 rounded-full mb-6 mx-auto">
-            <svg className="w-10 h-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12" 
-              />
+      <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-slate-50 via-indigo-50/50 to-blue-50 py-16 px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-[460px] bg-white rounded-2xl shadow-xl border border-slate-100 p-8 sm:p-10 text-center">
+          <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg className="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-neutral-900 mb-3">
-            Verification failed
-          </h1>
-          <p className="text-neutral-500 text-sm mb-8">
-            This verification link is invalid or has already been used.
-            Links expire after 24 hours.{" "}
-            <Link to="/login" className="text-accent underline">
-              Try logging in
-            </Link>{" "}
-            or register a new account.
+          <h2 className="text-xl font-bold text-slate-800 mb-2">Verification failed</h2>
+          <p className="text-slate-500 text-sm mb-8 leading-relaxed">
+            This verification link is invalid, has expired, or has already been used.
           </p>
-          <Link 
+          <Link
             to="/register"
-            className="inline-block px-8 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-colors duration-250"
+            className="w-full h-11 bg-primary hover:bg-primary-dark text-white rounded-xl font-semibold shadow-md shadow-primary/10 hover:shadow-lg hover:shadow-primary/20 transition-all duration-150 flex items-center justify-center mb-4"
           >
             Register Again
           </Link>
+          <div className="text-center">
+            <Link
+              to="/login"
+              className="text-sm font-semibold text-primary hover:text-primary-dark transition-colors"
+            >
+              Try logging in instead
+            </Link>
+          </div>
         </div>
       </div>
     );
   }
 
-  // ── Success state ────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-neutral-50 flex items-center justify-center px-4">
-      <div className="w-full max-w-md text-center">
-        <div className="inline-flex items-center justify-center w-20 h-20 bg-success-light rounded-full mb-6 mx-auto">
-          <svg className="w-10 h-10 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              strokeWidth={2}
-              d="M5 13l4 4L19 7" 
-            />
+    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-slate-50 via-indigo-50/50 to-blue-50 py-16 px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-[460px] bg-white rounded-2xl shadow-xl border border-slate-100 p-8 sm:p-10 text-center">
+        <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
+          <svg className="w-8 h-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
           </svg>
         </div>
-        <h1 className="text-2xl font-bold text-neutral-900 mb-3">
-          Email verified!
-        </h1>
-        <p className="text-neutral-500 text-sm mb-8">
-          Your account is now active. Sign in to start using TutorHub.
+        <h2 className="text-xl font-bold text-slate-800 mb-2">Email verified!</h2>
+        <p className="text-slate-500 text-sm mb-8 leading-relaxed">
+          Your account is now active. You're all set to start using TutorHub!
         </p>
-        <Link 
+        <Link
           to="/login"
-          className="inline-block px-8 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-colors duration-250"
+          className="w-full h-11 bg-primary hover:bg-primary-dark text-white rounded-xl font-semibold shadow-md shadow-primary/10 hover:shadow-lg hover:shadow-primary/20 transition-all duration-150 flex items-center justify-center"
         >
           Sign In Now
         </Link>

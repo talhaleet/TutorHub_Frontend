@@ -30,7 +30,16 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
-    // Your existing 401 refresh token logic here...
+    const status = error?.response?.status;
+    if (status === 401) {
+      useAuthStore.getState().logout();
+    }
+    if (status === 403) {
+      const role = useAuthStore.getState().user?.role;
+      if (role && role !== 'Admin' && error.config?.url?.includes('/api/admin')) {
+        error.adminForbidden = true;
+      }
+    }
     return Promise.reject(error);
   }
 );

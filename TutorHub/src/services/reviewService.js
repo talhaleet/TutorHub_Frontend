@@ -3,8 +3,12 @@ import axiosInstance from "./axiosInstance";
 
 // Get all reviews for a tutor
 export const getTutorReviews = async (tutorId) => {
-  const res = await axiosInstance.get(`/api/reviews/tutor/${tutorId}`);
-  return res.data;
+  try {
+    const res = await axiosInstance.get(`/api/reviews/tutor/${tutorId}`);
+    return res.data;
+  } catch {
+    return { data: [] };
+  }
 };
 
 // (Optional) Add review

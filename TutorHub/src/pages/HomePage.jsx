@@ -1,57 +1,10 @@
-// HomePage.jsx — Placeholder, full content built on Day 7
-// Updated Day 3: now uses PublicLayout so Navbar and Footer appear.
-
 import PublicLayout from '../components/layout/PublicLayout';
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import TutorCard from '../components/tutor/TutorCard'; // I'll use the new TutorCard component for featured tutors
+import { searchTutors } from '../services/searchService';
 
-// ── Static featured tutors data ─────────────────────────────────────────
-const FEATURED_TUTORS = [
-  {
-    id: 1,
-    name: 'Sara Ahmed',
-    subject: 'Mathematics & Physics',
-    rating: 4.9,
-    reviews: 124,
-    rate: 'PKR 1,500/hr',
-    city: 'Lahore',
-    mode: 'Online & In-Person',
-    experience: '5 years',
-    badge: 'Top Rated',
-    initials: 'SA',
-    color: 'bg-blue-500',
-  },
-  {
-    id: 2,
-    name: 'Ali Hassan',
-    subject: 'Chemistry & Biology',
-    rating: 4.8,
-    reviews: 98,
-    rate: 'PKR 1,200/hr',
-    city: 'Karachi',
-    mode: 'Online Only',
-    experience: '3 years',
-    badge: 'Verified',
-    initials: 'AH',
-    color: 'bg-green-500',
-  },
-  {
-    id: 3,
-    name: 'Fatima Malik',
-    subject: 'English & Urdu',
-    rating: 5.0,
-    reviews: 67,
-    rate: 'PKR 900/hr',
-    city: 'Islamabad',
-    mode: 'Online Only',
-    experience: '4 years',
-    badge: 'New',
-    initials: 'FM',
-    color: 'bg-purple-500',
-  },
-];
-
-// ── How It Works steps ───────────────────────────────────────────────────
 const HOW_IT_WORKS = [
   {
     step: '01',
@@ -73,7 +26,6 @@ const HOW_IT_WORKS = [
   },
 ];
 
-// ── Platform stats ───────────────────────────────────────────────────────
 const STATS = [
   { value: '2,500+', label: 'Verified Tutors' },
   { value: '10,000+', label: 'Sessions Completed' },
@@ -84,6 +36,21 @@ const STATS = [
 const HomePage = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+  const {
+    data: featuredResult,
+    isLoading: featuredLoading,
+    isError: featuredError,
+  } = useQuery({
+    queryKey: ['home-featured-tutors'],
+    queryFn: () =>
+      searchTutors({
+        sortBy: 'rating',
+        page: 1,
+        pageSize: 6,
+      }),
+    staleTime: 1000 * 60 * 5,
+  });
+  const featuredTutors = featuredResult?.data ?? [];
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -94,66 +61,55 @@ const HomePage = () => {
 
   return (
     <PublicLayout>
-      <div className="min-h-screen bg-white">
-        {/* ═══ HERO SECTION ════════════════════════════════════════════════ */}
-        <section className="relative bg-gradient-to-br from-primary to-accent overflow-hidden pt-24 pb-32 px-4">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
-
-          <div className="relative max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 bg-white/10 text-white text-xs font-semibold px-4 py-2 rounded-full mb-6 backdrop-blur-sm">
-              <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+      <div style={{ background: 'var(--gray-50)', minHeight: '100vh' }}>
+        
+        {/* HERO SECTION */}
+        <section style={{ background: 'linear-gradient(135deg, var(--blue-d), var(--blue))', padding: '100px 20px 140px', position: 'relative', overflow: 'hidden' }}>
+          {/* Decorative circles */}
+          <div style={{ position: 'absolute', top: '-100px', right: '-100px', width: '400px', height: '400px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)' }}></div>
+          <div style={{ position: 'absolute', bottom: '-50px', left: '-50px', width: '300px', height: '300px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)' }}></div>
+          
+          <div style={{ maxWidth: '800px', margin: '0 auto', textAlign: 'center', position: 'relative', zIndex: 10 }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.1)', padding: '6px 16px', borderRadius: '999px', fontSize: '13px', fontWeight: 700, color: 'white', marginBottom: '32px' }}>
+              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--green)' }}></div>
               2,500+ tutors available right now
             </div>
-
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
-              Find the{' '}
-              <span className="relative">
-                <span className="relative z-10">Perfect Tutor</span>
-                <span className="absolute bottom-1 left-0 w-full h-3 bg-white/20 rounded-full" />
-              </span>{' '}
-              for Every Subject
+            
+            <h1 style={{ fontSize: '56px', fontWeight: 900, color: 'white', lineHeight: 1.1, letterSpacing: '-1.5px', marginBottom: '24px' }}>
+              Find the <span style={{ position: 'relative', display: 'inline-block' }}>
+                Perfect Tutor
+                <div style={{ position: 'absolute', bottom: '6px', left: 0, width: '100%', height: '12px', background: 'rgba(255,255,255,0.2)', borderRadius: '10px' }}></div>
+              </span> for Every Subject
             </h1>
-
-            <p className="text-xl text-blue-100 mb-10 max-w-2xl mx-auto leading-relaxed">
-              Connect with verified, expert tutors across Pakistan.
-              Learn online or in-person at your place.
+            
+            <p style={{ fontSize: '18px', color: 'var(--blue-l)', maxWidth: '600px', margin: '0 auto 40px', lineHeight: 1.6 }}>
+              Connect with verified, expert tutors across Pakistan. Learn online or in-person at your place.
             </p>
-
-            <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3 max-w-2xl mx-auto">
-              <div className="flex-1 relative">
-                <svg
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
+            
+            <form onSubmit={handleSearch} style={{ display: 'flex', gap: '12px', maxWidth: '600px', margin: '0 auto', background: 'white', padding: '10px', borderRadius: '16px', boxShadow: 'var(--shadow-lg)' }}>
+              <div style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center' }}>
+                <svg style={{ position: 'absolute', left: '16px', color: 'var(--gray-400)' }} width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0" />
                 </svg>
-
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search by subject, tutor name, or city..."
-                  className="w-full pl-12 pr-4 py-4 rounded-2xl text-neutral-900 text-sm font-medium shadow-lg outline-none focus:ring-4 focus:ring-white/30 transition-all duration-250 placeholder:text-neutral-400"
+                  style={{ width: '100%', padding: '16px 16px 16px 48px', border: 'none', background: 'transparent', fontSize: '15px', outline: 'none', color: 'var(--gray-900)' }}
                 />
               </div>
-
-              <button
-                type="submit"
-                className="px-8 py-4 bg-white text-primary font-bold text-sm rounded-2xl shadow-lg hover:bg-neutral-50 active:scale-[0.98] transition-all duration-250 whitespace-nowrap"
-              >
+              <button type="submit" className="btn-primary" style={{ padding: '14px 32px', fontSize: '15px' }}>
                 Search Tutors
               </button>
             </form>
-
-            <div className="flex flex-wrap justify-center gap-2 mt-6">
-              {['Mathematics', 'Physics', 'Chemistry', 'English', 'Computer Science', 'Urdu'].map((sub) => (
+            
+            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '10px', marginTop: '32px' }}>
+              {['Mathematics', 'Physics', 'Chemistry', 'English', 'Computer Science'].map((sub) => (
                 <button
                   key={sub}
                   onClick={() => navigate(`/search?q=${sub}`)}
-                  className="px-4 py-1.5 bg-white/10 text-white text-xs font-medium rounded-full hover:bg-white/20 transition-colors duration-250 backdrop-blur-sm"
+                  style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', padding: '6px 16px', borderRadius: '999px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', backdropFilter: 'blur(4px)' }}
                 >
                   {sub}
                 </button>
@@ -162,132 +118,91 @@ const HomePage = () => {
           </div>
         </section>
 
-        {/* ═══ STATS ═════════════════════════════════════════════════════ */}
-        <section className="bg-primary py-10 px-4">
-          <div className="max-w-5xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-8">
+        {/* STATS SECTION */}
+        <section style={{ background: 'var(--blue)', padding: '40px 20px' }}>
+          <div style={{ maxWidth: '1000px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '32px' }}>
             {STATS.map((stat) => (
-              <div key={stat.label} className="text-center">
-                <p className="text-3xl font-bold text-white">{stat.value}</p>
-                <p className="text-blue-200 text-sm mt-1">{stat.label}</p>
+              <div key={stat.label} style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '36px', fontWeight: 900, color: 'white', letterSpacing: '-1px' }}>{stat.value}</div>
+                <div style={{ fontSize: '14px', color: 'var(--blue-l)', fontWeight: 600, marginTop: '4px' }}>{stat.label}</div>
               </div>
             ))}
           </div>
         </section>
 
-        {/* ═══ HOW IT WORKS ════════════════════════════════════════════════ */}
-     <section className="py-24 px-4 bg-neutral-50">
-        <div className="max-w-5xl mx-auto">
-        <div className="text-center mb-16">
-        <span className="text-accent text-sm font-semibold uppercase trackingwider">
-       Simple Process
-       </span>
-       <h2 className="text-3xl sm:text-4xl font-bold text-neutral-900 mt-3">
-       How TutorHub Works
-       </h2>
-      <p className="text-neutral-500 mt-4 max-w-xl mx-auto">
-       From search to session in under 5 minutes.
-      No contracts. Cancel anytime.
-       </p>
-     </div>
-     <div className="grid md:grid-cols-3 gap-8">
-      {HOW_IT_WORKS.map((item, idx) => (
-      <div key={item.step}
-     className="relative bg-white rounded-3xl p-8 shadow-card
-      border border-neutral-100 hover:border-primary/20
-      hover:shadow-lg transition-all duration-300 group">
-       {/* Connector line between cards */}
-       {idx < HOW_IT_WORKS.length - 1 && (
-       <div className="hidden md:block absolute top-12 -right-4 w-8
-        h-px bg-neutral-200 z-10" />
-       )}
-       {/* Step number */}
- <div className="w-14 h-14 rounded-2xl bg-primary/10
- flex items-center justify-center mb-5
- group-hover:bg-primary group-hover:scale-110
- transition-all duration-300">
- <span className="text-2xl">{item.icon}</span>
- </div>
- <div className="text-xs font-bold text-accent/60 mb-2
- tracking-widest">STEP {item.step}</div>
- <h3 className="text-lg font-bold text-neutral-900 mb-3">
- {item.title}
- </h3>
- <p className="text-neutral-500 text-sm leading-relaxed">
- {item.desc}
- </p>
- </div>
- ))}
- </div>
- </div>
- </section>
-
-        {/* ═══ FEATURED TUTORS ═══════════════════════════════════════════ */}
-        <section className="py-24 px-4 bg-white">
-          <div className="max-w-5xl mx-auto">
-            <div className="grid md:grid-cols-3 gap-6">
-              {FEATURED_TUTORS.map((tutor) => (
-                <div
-                  key={tutor.id}
-                  className="bg-white rounded-2xl border border-neutral-200 shadow-card hover:shadow-lg transition-all duration-300 overflow-hidden"
-                >
-                  <div className="bg-neutral-50 p-6 flex items-start gap-4">
-                    <div className={`w-14 h-14 ${tutor.color} rounded-2xl flex items-center justify-center`}>
-                      <span className="font-bold text-white text-lg">{tutor.initials}</span>
-                    </div>
-
-                    <div className="flex-1">
-                      <h3 className="font-bold text-neutral-900">{tutor.name}</h3>
-                      <p className="text-sm text-neutral-500">{tutor.subject}</p>
-                    </div>
+        {/* HOW IT WORKS */}
+        <section style={{ padding: '100px 20px', background: 'white' }}>
+          <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+            <div style={{ textAlign: 'center', marginBottom: '60px' }}>
+              <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--blue)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' }}>Simple Process</div>
+              <h2 style={{ fontSize: '36px', fontWeight: 900, color: 'var(--gray-900)', letterSpacing: '-1px', marginBottom: '16px' }}>How TutorHub Works</h2>
+              <p style={{ fontSize: '16px', color: 'var(--gray-500)', maxWidth: '500px', margin: '0 auto' }}>From search to session in under 5 minutes. No contracts. Cancel anytime.</p>
+            </div>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '32px' }}>
+              {HOW_IT_WORKS.map((item) => (
+                <div key={item.step} className="card" style={{ padding: '32px', textAlign: 'left', position: 'relative', overflow: 'hidden' }}>
+                  <div style={{ width: '56px', height: '56px', background: 'var(--blue-l)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', marginBottom: '24px' }}>
+                    {item.icon}
                   </div>
-
-                  <div className="p-6 pt-4">
-                    <div className="space-y-2 mb-5">
-                      <div className="flex items-center gap-2 text-sm text-neutral-600">
-                        <span>📍</span>
-                        <span>{tutor.city}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-primary">{tutor.rate}</span>
-                      <Link to={`/tutor/${tutor.id}`} className="px-4 py-2 bg-primary text-white text-sm rounded-xl">
-                        View Profile
-                      </Link>
-                    </div>
-                  </div>
+                  <div style={{ fontSize: '12px', fontWeight: 800, color: 'var(--blue)', letterSpacing: '1px', marginBottom: '8px' }}>STEP {item.step}</div>
+                  <h3 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--gray-900)', marginBottom: '12px' }}>{item.title}</h3>
+                  <p style={{ fontSize: '14px', color: 'var(--gray-500)', lineHeight: 1.6 }}>{item.desc}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        <section className="bg-gradient-to-r from-primary to-accent py-20 px-4">
- <div className="max-w-3xl mx-auto text-center">
- <h2 className="text-3xl font-bold text-white mb-4">
- Are you a Tutor? Earn on Your Schedule.
- </h2>
- <p className="text-blue-100 text-lg mb-8">
- Join 2,500+ tutors already earning on TutorHub.
- Set your own rates. Teach online or in-person.
- </p>
- <div className="flex flex-col sm:flex-row gap-4 justify-center">
- <Link to="/register"
- className="px-8 py-4 bg-white text-primary font-bold rounded-2xl
- hover:bg-neutral-50 active:scale-[0.98]
- transition-all duration-250 shadow-lg">
- Apply as a Tutor
- </Link>
- <Link to="/how-it-works"
- className="px-8 py-4 bg-white/10 text-white font-bold rounded-2xl
- hover:bg-white/20 transition-all duration-250 backdrop-blur-sm">
- Learn More
- </Link>
- </div>
- </div>
- </section>
-      </div>
+        {/* FEATURED TUTORS */}
+        <section style={{ padding: '100px 20px', background: 'var(--gray-50)' }}>
+          <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+            <div style={{ textAlign: 'center', marginBottom: '60px' }}>
+              <h2 style={{ fontSize: '36px', fontWeight: 900, color: 'var(--gray-900)', letterSpacing: '-1px', marginBottom: '16px' }}>Featured Tutors</h2>
+              <p style={{ fontSize: '16px', color: 'var(--gray-500)', maxWidth: '500px', margin: '0 auto' }}>Learn from some of our highest rated and most experienced educators.</p>
+            </div>
+            
+            {featuredLoading ? (
+              <div style={{ textAlign: 'center', padding: '24px', color: 'var(--gray-500)' }}>
+                Loading featured tutors...
+              </div>
+            ) : featuredError ? (
+              <div style={{ textAlign: 'center', padding: '24px', color: 'var(--gray-500)' }}>
+                Could not load featured tutors right now.
+              </div>
+            ) : featuredTutors.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '24px', color: 'var(--gray-500)' }}>
+                No approved tutors available yet.
+              </div>
+            ) : (
+              <div className="tutor-grid">
+                {featuredTutors.map((tutor) => (
+                  <TutorCard key={tutor.id} tutor={tutor} />
+                ))}
+              </div>
+            )}
+            
+            <div style={{ textAlign: 'center', marginTop: '48px' }}>
+              <Link to="/search" className="btn-primary" style={{ padding: '16px 32px', fontSize: '15px' }}>Explore All Tutors →</Link>
+            </div>
+          </div>
+        </section>
 
+        {/* CTA SECTION */}
+        <section style={{ padding: '100px 20px', background: 'white' }}>
+          <div style={{ maxWidth: '900px', margin: '0 auto', background: 'linear-gradient(135deg, var(--blue), var(--blue-d))', borderRadius: '32px', padding: '60px 40px', textAlign: 'center', color: 'white', boxShadow: 'var(--shadow-lg)' }}>
+            <h2 style={{ fontSize: '36px', fontWeight: 900, marginBottom: '20px', letterSpacing: '-1px' }}>Are you a Tutor? Earn on Your Schedule.</h2>
+            <p style={{ fontSize: '18px', color: 'var(--blue-l)', maxWidth: '600px', margin: '0 auto 40px', lineHeight: 1.6 }}>
+              Join 2,500+ tutors already earning on TutorHub. Set your own rates. Teach online or in-person.
+            </p>
+            <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Link to="/register" className="btn-primary" style={{ background: 'white', color: 'var(--blue)', padding: '16px 32px', fontSize: '15px' }}>Apply as a Tutor</Link>
+              <Link to="/how-it-works" className="btn-outline" style={{ borderColor: 'rgba(255,255,255,0.4)', color: 'white', padding: '16px 32px', fontSize: '15px', background: 'transparent' }}>Learn More</Link>
+            </div>
+          </div>
+        </section>
+
+      </div>
     </PublicLayout>
   );
 };

@@ -3,16 +3,19 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BookingStatusBadge from './BookingStatusBadge';
 import CancelBookingModal from './CancelBookingModal';
+import ReviewBookingModal from './ReviewBookingModal';
 
 export default function BookingCard({ booking, showCancelButton = true }) {
   const navigate = useNavigate();
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
 
   const {
     id,
     tutorName,
     tutorId,
     subjectName,
+    subject,
     scheduledDate,
     startTime,
     durationMinutes,
@@ -25,7 +28,8 @@ export default function BookingCard({ booking, showCancelButton = true }) {
 
   const canCancel = status === 'Pending' || status === 'Confirmed';
   const canJoin = status === 'Confirmed' && teachingMode === 'Online' && meetingLink;
-  const canReschedule = status === 'Pending' || status === 'Confirmed';
+  const canReschedule = (status === 'Pending' || status === 'Confirmed') && !!tutorId;
+  const canReview = status === 'Completed' && !!tutorId;
 
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString('en-US', {
@@ -43,7 +47,7 @@ export default function BookingCard({ booking, showCancelButton = true }) {
   };
 
   const handleReschedule = () => {
-    navigate(`/book/${tutorId}/reschedule/${id}`);
+    navigate(`/book/${tutorId}?rescheduleOf=${id}`);
   };
 
   return (
@@ -54,7 +58,7 @@ export default function BookingCard({ booking, showCancelButton = true }) {
           <div className='flex justify-between items-start mb-3'>
             <div>
               <h3 className='text-lg font-bold text-neutral-800 mb-1'>
-                {subjectName}
+                {subjectName || subject || 'Session'}
               </h3>
               <p className='text-sm text-neutral-600'>
                 with {tutorName}
@@ -145,6 +149,14 @@ export default function BookingCard({ booking, showCancelButton = true }) {
           >
             View Details
           </button>
+          {canReview && (
+            <button
+              onClick={() => setShowReviewModal(true)}
+              className='px-4 border-2 border-amber-200 text-amber-700 font-semibold py-2.5 rounded-xl hover:bg-amber-50 transition-all text-sm'
+            >
+              Rate Tutor
+            </button>
+          )}
         </div>
       </div>
 
@@ -154,6 +166,11 @@ export default function BookingCard({ booking, showCancelButton = true }) {
         onClose={() => setShowCancelModal(false)}
         bookingId={id}
         bookingDetails={booking}
+      />
+      <ReviewBookingModal
+        isOpen={showReviewModal}
+        onClose={() => setShowReviewModal(false)}
+        booking={booking}
       />
     </>
   );

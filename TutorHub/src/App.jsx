@@ -25,16 +25,26 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import NotFoundPage from './pages/NotFoundPage';
+import HowItWorksPage from './pages/HowItWorksPage';
+import ForTutorsPage from './pages/ForTutorsPage';
+import PricingPage from './pages/PricingPage';
+import HelpCenterPage from './pages/HelpCenterPage';
+import ContactPage from './pages/ContactPage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import TermsOfUsePage from './pages/TermsOfUsePage';
+import CookiePolicyPage from './pages/CookiePolicyPage';
 
 // Student pages
 import BookSessionPage from './pages/BookSessionPage';
 import PaymentPage from './pages/PaymentPage';
 import PaymentSuccessPage from './pages/PaymentSuccessPage';
+import BookingDetailsPage from './pages/BookingDetailsPage';
 import StudentDashboard from './pages/StudentDashboard';
 import MyBookingsPage from './pages/MyBookingsPage';
 import PaymentHistoryPage from './pages/PaymentHistoryPage';
 import ParentDashboard from './pages/ParentDashboard';
 import ChildProfilesPage from './pages/ChildProfilesPage';
+import TutorAssistantPage from './pages/TutorAssistantPage';
 
 // Shared pages
 import ChatPage from './pages/ChatPage';
@@ -73,6 +83,14 @@ function App() {
           <Route path='/forgot-password' element={<ForgotPasswordPage />} />
           <Route path='/reset-password' element={<ResetPasswordPage />} />
           <Route path='/verify-email' element={<VerifyEmailPage />} />
+          <Route path='/how-it-works' element={<HowItWorksPage />} />
+          <Route path='/for-tutors' element={<ForTutorsPage />} />
+          <Route path='/pricing' element={<PricingPage />} />
+          <Route path='/help' element={<HelpCenterPage />} />
+          <Route path='/contact' element={<ContactPage />} />
+          <Route path='/privacy' element={<PrivacyPolicyPage />} />
+          <Route path='/terms' element={<TermsOfUsePage />} />
+          <Route path='/cookies' element={<CookiePolicyPage />} />
 
           {/* Authenticated routes */}
           <Route path='/chat' element={
@@ -87,6 +105,9 @@ function App() {
           <Route path='/dashboard/bookings' element={
             <ProtectedRoute><MyBookingsPage /></ProtectedRoute>
           } />
+          <Route path='/booking/:id' element={
+            <ProtectedRoute><BookingDetailsPage /></ProtectedRoute>
+          } />
           <Route path='/payment/:bookingId' element={
             <ProtectedRoute><PaymentPage /></ProtectedRoute>
           } />
@@ -95,6 +116,11 @@ function App() {
           } />
           <Route path='/dashboard/payments' element={
             <ProtectedRoute><PaymentHistoryPage /></ProtectedRoute>
+          } />
+          <Route path='/assistant/tutor' element={
+            <ProtectedRoute allowedRoles={['Student', 'Parent']}>
+              <TutorAssistantPage />
+            </ProtectedRoute>
           } />
 
           {/* Student / Parent */}

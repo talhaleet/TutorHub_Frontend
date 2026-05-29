@@ -1,5 +1,3 @@
-// LoginPage.jsx — TutorHub login page with full API integration
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,7 +7,6 @@ import { loginSchema } from "../validators/authValidators";
 import { login } from "../services/authService";
 import useAuthStore from "../store/authStore";
 
-// ── Role-to-dashboard map ───────────────────────────
 const dashboardRoute = {
   Student: "/dashboard/student",
   Parent: "/dashboard/parent",
@@ -20,10 +17,8 @@ const dashboardRoute = {
 const LoginPage = () => {
   const navigate = useNavigate();
   const authLogin = useAuthStore((state) => state.login);
-
   const [showPassword, setShowPassword] = useState(false);
 
-  // ── react-hook-form setup ─────────────────────────
   const {
     register,
     handleSubmit,
@@ -33,21 +28,15 @@ const LoginPage = () => {
     defaultValues: { email: "", password: "" },
   });
 
-  // ── Submit handler ────────────────────────────────
   const onSubmit = async (data) => {
     try {
       const response = await login(data);
-
-      // Save user + tokens in Zustand/global state
       authLogin(
         response.user,
         response.accessToken,
         response.refreshToken
       );
-
       toast.success(`Welcome back, ${response.user.firstName}!`);
-
-      // Redirect based on role
       const route = dashboardRoute[response.user.role] || "/";
       navigate(route, { replace: true });
     } catch (error) {
@@ -55,163 +44,106 @@ const LoginPage = () => {
         error?.response?.data?.message ||
         error?.response?.data ||
         "Login failed. Please check your credentials.";
-
       toast.error(message);
     }
   };
 
-  // ── UI ────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-neutral-50 flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md">
-
-        {/* ── Logo + Heading ── */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 bg-primary rounded-2xl mb-4 shadow-card">
-            <span className="text-white font-bold text-2xl select-none">T</span>
-          </div>
-
-          <h1 className="text-2xl font-bold text-neutral-900">
-            Welcome back
-          </h1>
-
-          <p className="text-neutral-500 mt-1 text-sm">
-            Sign in to your TutorHub account
+    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-slate-50 via-indigo-50/50 to-blue-50 py-16 px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-[460px] bg-white rounded-2xl shadow-xl border border-slate-100 p-8 sm:p-10 transition-all duration-300 hover:shadow-2xl">
+        <div className="flex flex-col items-center mb-8">
+          <Link to="/" className="flex items-center gap-2 mb-6 group">
+            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 shadow-md shadow-primary/20">
+              <svg className="w-6 h-6 fill-white" viewBox="0 0 24 24">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+              </svg>
+            </div>
+            <span className="text-xl font-extrabold text-slate-800 tracking-tight">
+              Tutor<span className="text-primary">Hub</span>
+            </span>
+          </Link>
+          <h2 className="text-2xl font-bold text-slate-800 text-center">Welcome back</h2>
+          <p className="text-slate-500 text-sm mt-2 text-center">
+            Sign in to your account to continue your learning journey
           </p>
         </div>
 
-        {/* ── Card ── */}
-        <div className="bg-white rounded-2xl shadow-card border border-neutral-200 p-8">
-          <form onSubmit={handleSubmit(onSubmit)} noValidate>
-
-            {/* ── Email ── */}
-            <div className="mb-5">
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-neutral-700 mb-1.5"
-              >
-                Email address
-              </label>
-
-              <input
-                id="email"
-                type="email"
-                autoComplete="email"
-                placeholder="you@example.com"
-                {...register("email")}
-                className={`w-full px-4 py-3 rounded-xl border text-sm outline-none transition-colors duration-200
-                  focus:ring-2 focus:ring-accent focus:border-accent
-                  ${
-                    errors.email
-                      ? "border-error bg-error-light text-error"
-                      : "border-neutral-300 bg-white text-neutral-900 hover:border-neutral-400"
-                  }`}
-              />
-
-              {errors.email && (
-                <p className="text-error text-xs mt-1.5 flex items-center gap-1">
-                  <span>⚠</span> {errors.email.message}
-                </p>
-              )}
-            </div>
-
-            {/* ── Password ── */}
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-1.5">
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-medium text-neutral-700"
-                >
-                  Password
-                </label>
-
-                <Link
-                  to="/forgot-password"
-                  className="text-xs text-accent hover:text-primary font-medium transition-colors"
-                >
-                  Forgot password?
-                </Link>
-              </div>
-
-              <div className="relative">
-                <input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  autoComplete="current-password"
-                  placeholder="Enter your password"
-                  {...register("password")}
-                  className={`w-full px-4 py-3 pr-12 rounded-xl border text-sm outline-none transition-colors duration-200
-                    focus:ring-2 focus:ring-accent focus:border-accent
-                    ${
-                      errors.password
-                        ? "border-error bg-error-light text-error"
-                        : "border-neutral-300 bg-white text-neutral-900 hover:border-neutral-400"
-                    }`}
-                />
-
-                {/* Toggle password visibility */}
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
-                >
-                  {showPassword ? "\u{1F441}" : "\u{1F441}\u{FE0F}\u{200D}\u{1F5E8}\u{FE0F}"}
-                </button>
-              </div>
-
-              {errors.password && (
-                <p className="text-error text-xs mt-1.5 flex items-center gap-1">
-                  <span>⚠</span> {errors.password.message}
-                </p>
-              )}
-            </div>
-
-            {/* ── Submit ── */}
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className={`w-full py-3 rounded-xl font-semibold text-sm text-white transition-all
-                ${
-                  isSubmitting
-                    ? "bg-neutral-400 cursor-not-allowed"
-                    : "bg-primary hover:bg-primary-dark active:scale-[0.98] shadow-card hover:shadow-navbar"
-                }`}
-            >
-              {isSubmitting ? "Signing in..." : "Sign In"}
-            </button>
-          </form>
-
-          {/* ── Divider ── */}
-          <div className="flex items-center gap-3 my-6">
-            <div className="flex-1 h-px bg-neutral-200" />
-            <span className="text-xs text-neutral-400 font-medium">
-              New to TutorHub?
-            </span>
-            <div className="flex-1 h-px bg-neutral-200" />
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
+              Email address
+            </label>
+            <input
+              type="email"
+              autoComplete="email"
+              placeholder="you@example.com"
+              {...register("email")}
+              className={`w-full h-11 px-4 rounded-xl border bg-slate-50/50 text-slate-800 placeholder-slate-400 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-150 ${
+                errors.email ? "border-red-500" : "border-slate-200"
+              }`}
+            />
+            {errors.email && (
+              <p className="text-red-500 text-xs mt-1.5 flex items-center gap-1">
+                <span className="inline-block">⚠</span> {errors.email.message}
+              </p>
+            )}
           </div>
 
-          {/* ── Register ── */}
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <label className="block text-sm font-semibold text-slate-700">
+                Password
+              </label>
+              <Link
+                to="/forgot-password"
+                className="text-xs font-semibold text-primary hover:text-primary-dark transition-colors"
+              >
+                Forgot password?
+              </Link>
+            </div>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                placeholder="Enter your password"
+                {...register("password")}
+                className={`w-full h-11 pl-4 pr-12 rounded-xl border bg-slate-50/50 text-slate-800 placeholder-slate-400 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-150 ${
+                  errors.password ? "border-red-500" : "border-slate-200"
+                }`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((p) => !p)}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors text-xs font-bold"
+              >
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            </div>
+            {errors.password && (
+              <p className="text-red-500 text-xs mt-1.5 flex items-center gap-1">
+                <span className="inline-block">⚠</span> {errors.password.message}
+              </p>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full h-11 bg-primary hover:bg-primary-dark text-white rounded-xl font-semibold shadow-md shadow-primary/10 hover:shadow-lg hover:shadow-primary/20 transition-all duration-150 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? "Signing in..." : "Sign In"}
+          </button>
+        </form>
+
+        <div className="mt-8 pt-6 border-t border-slate-100 text-center text-sm text-slate-500">
+          New to TutorHub?{" "}
           <Link
             to="/register"
-            className="block w-full text-center py-3 rounded-xl border-2 border-primary text-primary font-semibold text-sm
-            hover:bg-primary hover:text-white transition-all active:scale-[0.98]"
+            className="font-semibold text-primary hover:text-primary-dark transition-colors"
           >
             Create your account
           </Link>
         </div>
-
-        {/* ── Footer ── */}
-        <p className="text-center text-xs text-neutral-400 mt-6">
-          By signing in you agree to our{" "}
-          <Link to="/terms" className="underline hover:text-neutral-600">
-            Terms of Use
-          </Link>{" "}
-          and{" "}
-          <Link to="/privacy" className="underline hover:text-neutral-600">
-            Privacy Policy
-          </Link>
-        </p>
-
       </div>
     </div>
   );

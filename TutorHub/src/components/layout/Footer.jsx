@@ -13,9 +13,9 @@ const footerColumns = [
     title: 'Platform',
     links: [
       { label: 'Find Tutors',   path: '/search' },
-      { label: 'How It Works',  path: '/#how-it-works' },
-      { label: 'For Tutors',    path: '/#for-tutors' },
-      { label: 'Pricing',       path: '/#pricing' },
+      { label: 'How It Works',  path: '/how-it-works' },
+      { label: 'For Tutors',    path: '/for-tutors' },
+      { label: 'Pricing',       path: '/pricing' },
     ],
   },
   {

@@ -1,24 +1,15 @@
-// ForgotPasswordPage.jsx — Request a password reset link
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
-
 import { forgotPasswordSchema } from "../validators/authValidators";
 import { forgotPassword } from "../services/authService";
 
 const ForgotPasswordPage = () => {
-  // Track success state
   const [emailSent, setEmailSent] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-    getValues,
-  } = useForm({
+  const { register, handleSubmit, formState: { errors, isSubmitting }, getValues } = useForm({
     resolver: zodResolver(forgotPasswordSchema),
     defaultValues: { email: "" },
   });
@@ -32,105 +23,64 @@ const ForgotPasswordPage = () => {
     }
   };
 
-  // ── Success State ─────────────────────────────
-  if (emailSent) {
-    return (
-      <div className="min-h-screen bg-neutral-50 flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-md text-center">
-
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-success-light rounded-full mb-6 mx-auto">
-            <svg
-              className="w-10 h-10 text-success"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
-          </div>
-
-          <h1 className="text-2xl font-bold text-neutral-900 mb-3">
-            Check your inbox
-          </h1>
-
-          <p className="text-neutral-500 text-sm mb-2">
-            We sent a password reset link to
-          </p>
-
-          <p className="font-semibold text-neutral-900 mb-8">
-            {getValues("email")}
-          </p>
-
-          <p className="text-neutral-400 text-xs mb-8">
-            Did not receive it? Check your spam folder or wait a few minutes. The link expires in 1 hour.
-          </p>
-
-          <Link
-            to="/login"
-            className="inline-block px-8 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-colors duration-200"
-          >
-            Back to Sign In
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  // ── Form State ───────────────────────────────
   return (
-    <div className="min-h-screen bg-neutral-50 flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md">
-
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 bg-primary rounded-2xl mb-4 shadow-card">
-            <span className="text-white font-bold text-2xl select-none">T</span>
-          </div>
-
-          <h1 className="text-2xl font-bold text-neutral-900">
-            Forgot your password?
-          </h1>
-
-          <p className="text-neutral-500 mt-1 text-sm">
-            Enter your email and we will send you a reset link.
+    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-slate-50 via-indigo-50/50 to-blue-50 py-16 px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-[460px] bg-white rounded-2xl shadow-xl border border-slate-100 p-8 sm:p-10 transition-all duration-300 hover:shadow-2xl">
+        <div className="flex flex-col items-center mb-8">
+          <Link to="/" className="flex items-center gap-2 mb-6 group">
+            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 shadow-md shadow-primary/20">
+              <svg className="w-6 h-6 fill-white" viewBox="0 0 24 24">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+              </svg>
+            </div>
+            <span className="text-xl font-extrabold text-slate-800 tracking-tight">
+              Tutor<span className="text-primary">Hub</span>
+            </span>
+          </Link>
+          <h2 className="text-2xl font-bold text-slate-800 text-center">Reset your password</h2>
+          <p className="text-slate-500 text-sm mt-2 text-center">
+            We will send a password reset link to your email address
           </p>
         </div>
 
-        {/* Card */}
-        <div className="bg-white rounded-2xl shadow-card border border-neutral-200 p-8">
-          <form onSubmit={handleSubmit(onSubmit)} noValidate>
-
-            <div className="mb-6">
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-neutral-700 mb-1.5"
-              >
+        {emailSent ? (
+          <div className="text-center">
+            <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg className="w-8 h-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
+              </svg>
+            </div>
+            <h3 className="text-lg font-bold text-slate-800 mb-2">Check your inbox</h3>
+            <p className="text-slate-500 text-sm mb-1">We sent a reset link to</p>
+            <p className="font-semibold text-slate-800 mb-6 break-all">{getValues("email")}</p>
+            <p className="text-xs text-slate-400 mb-8 leading-relaxed">
+              Didn't receive it? Please check your spam folder or try requesting another link in a few minutes.
+            </p>
+            <Link
+              to="/login"
+              className="w-full h-11 bg-primary hover:bg-primary-dark text-white rounded-xl font-semibold shadow-md shadow-primary/10 hover:shadow-lg hover:shadow-primary/20 transition-all duration-150 flex items-center justify-center"
+            >
+              Back to Sign In
+            </Link>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
                 Email address
               </label>
-
               <input
-                id="email"
                 type="email"
                 autoComplete="email"
                 placeholder="you@example.com"
                 {...register("email")}
-                className={`w-full px-4 py-3 rounded-xl border text-sm outline-none transition-colors duration-200
-                  focus:ring-2 focus:ring-accent focus:border-accent
-                  ${
-                    errors.email
-                      ? "border-error bg-error-light"
-                      : "border-neutral-300 hover:border-neutral-400"
-                  }`}
+                className={`w-full h-11 px-4 rounded-xl border bg-slate-50/50 text-slate-800 placeholder-slate-400 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-150 ${
+                  errors.email ? "border-red-500" : "border-slate-200"
+                }`}
               />
-
               {errors.email && (
-                <p className="text-error text-xs mt-1.5">
-                  ⚠ {errors.email.message}
+                <p className="text-red-500 text-xs mt-1.5 flex items-center gap-1">
+                  <span className="inline-block">⚠</span> {errors.email.message}
                 </p>
               )}
             </div>
@@ -138,27 +88,21 @@ const ForgotPasswordPage = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`w-full py-3 rounded-xl font-semibold text-sm text-white transition-all duration-200
-                ${
-                  isSubmitting
-                    ? "bg-neutral-400 cursor-not-allowed"
-                    : "bg-primary hover:bg-primary-dark active:scale-[0.98]"
-                }`}
+              className="w-full h-11 bg-primary hover:bg-primary-dark text-white rounded-xl font-semibold shadow-md shadow-primary/10 hover:shadow-lg hover:shadow-primary/20 transition-all duration-150 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? "Sending..." : "Send Reset Link"}
+              {isSubmitting ? "Sending link..." : "Send Reset Link"}
             </button>
+
+            <div className="text-center">
+              <Link
+                to="/login"
+                className="text-sm font-semibold text-primary hover:text-primary-dark transition-colors"
+              >
+                ← Back to Sign In
+              </Link>
+            </div>
           </form>
-
-          <div className="text-center mt-6">
-            <Link
-              to="/login"
-              className="text-sm text-accent hover:text-primary font-medium transition-colors duration-200"
-            >
-              ← Back to Sign In
-            </Link>
-          </div>
-        </div>
-
+        )}
       </div>
     </div>
   );
