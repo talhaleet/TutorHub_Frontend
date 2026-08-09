@@ -6,7 +6,7 @@ The app is role-aware: a single codebase serves four distinct experiences (Stude
 
 ---
 
-## Table of 
+## Table of Contents
 
 - [Features](#features)
 - [Tech Stack](#tech-stack)
